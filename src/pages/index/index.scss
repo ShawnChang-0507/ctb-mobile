@@ -1,0 +1,48 @@
+.index {
+    text-align: center;
+}
+
+.login {
+    width: 80%;
+    background-color: rgb(97, 144, 232);
+    color: white;
+}
+
+.logo {
+    width: 210px;
+    height: 80px;
+    margin-bottom: 2rem;
+    margin-top: 2rem;
+}
+
+.input-box {
+    width: 80%;
+    height: 2.2rem;
+    margin: 0 auto;
+}
+
+.input-text, .input {
+    float: left;
+}
+
+.input-text {
+    width: 25%;
+    font-size: 1rem;
+}
+
+.input {
+    width: 60%;
+}
+
+.line {
+    height: 1px;
+    background-color: rgb(150, 150, 150);
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+    width: 100%;
+    float: right;
+}
+
+.white-place {
+    height: 1rem;
+}

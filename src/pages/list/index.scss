@@ -1,0 +1,66 @@
+form {
+    text-align: center;
+    margin-top: 70px;
+    position: absolute;
+    width: 100%;
+}
+
+.column {
+    display: inline-block;
+}
+
+.section {
+    font-size: 0.7rem;
+    width: 95%;
+    text-align: center;
+    border-bottom: 1px solid #aaaaaa;
+    margin: 0 auto;
+    line-height: 1.4rem;
+}
+
+.btn-area {
+    width: 95%;
+    position: fixed;
+    left: 2.5%;
+    top: 0;
+    background: white;
+}
+
+button {
+    font-size: 0.6rem;
+    height: 1.8rem;
+    line-height: 1.8rem;
+    width: 20%;
+    margin-left: 10px;
+    float: right !important;
+}
+
+picker {
+    font-size: 0.8rem;
+    height: 1.5rem;
+    line-height: 1.5rem;
+    width: 20%;
+    float: left !important;
+    border: 1px solid #dddddd;
+}
+
+.check-box {
+    zoom:60%;
+}
+
+.info-board {
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+    height: 70%;
+    background: rgba(240, 240, 240 , 0.8);
+    overflow-y: scroll;
+}
+
+.show {
+    display: block;
+}
+
+.hide {
+    display: none;
+}
