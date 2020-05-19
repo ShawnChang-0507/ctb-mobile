@@ -1,29 +1,44 @@
 import Taro, { Component, Config } from '@tarojs/taro'
-import { View, Form, Button, Checkbox, Picker, CheckboxGroup } from '@tarojs/components'
+import { View, Form, Button, Checkbox, CheckboxGroup, Input } from '@tarojs/components'
 import './index.scss'
-import { PickerSelectorProps } from '@tarojs/components/types/Picker';
 import { BaseEventOrig, ITouchEvent } from '@tarojs/components/types/common';
+import { AtTabs, AtTabsPane } from 'taro-ui';
+import { Util } from '../util/util';
 
 interface iProps { }
 
 interface iState {
+  /** 判断当前页是哪个页面 */
   current: string,
+  /** 列表标题行内容 */
   header: string[],
+  /** 列表每列的key值 */
   columns: string[],
+  /** 列表每列的宽度（百分比） */
   widths: string[],
+  /** 显示的数据 */
   datas: object[],
+  /** 原始数据 */
   origenalDatas: object[],
-  selectorChecked: string,
+  /** 详细信息 名字列表 */
   infoTitle: string[],
+  /** 详细信息 key列表 */
   infoValue: string[],
+  /** 当前显示的详细信息 */
   currentInfo: string[],
+  /** 是否显示详细信息 */
   showCurrentInfo: boolean,
+  /** 当前选择的是已审/未审 */
+  tabListCurrent: number,
+  /** 全选反选等按钮是否显示 */
+  showReviewButton: boolean,
+  /** 已审日期 */
+  reviewDate: Date;
+  /** 模糊查询输入框 */
+  inputVal: string;
 }
 
-const range = ['未审', '已审'];
-
-// const serverUrl = 'http://www.ctbkj.com.cn:3000/';
-const serverUrl = 'http://192.168.0.26:3000/';
+const widths = ['7.5%', '32%', '18%', '21%', '21.5%'];
 
 export default class List extends Component<iProps, iState> {
 
@@ -32,12 +47,13 @@ export default class List extends Component<iProps, iState> {
     const current = this.$router.params.current;
     let header: string[] = [];
     let columns: string[] = [];
-    let widths: string[] = [];
+    let currentWidths: string[] = [];
     switch (current) {
       case 'sgsp':
         header = ['序号', '收款单位', '金额', '经办人', '支付时间'];
-        columns = ['id', 'supplierInfo', 'money', 'author', 'costDateString'];
-        widths = ['13%', '32%', '15%', '20%', '20%'];
+        columns = ['id', 'supplierInfoShort', 'money', 'author', 'costDateString'];
+        // widths = ['10%', '32%', '17%', '20%', '21%'];
+        currentWidths = widths;
         break;
       default:
         break;
@@ -46,42 +62,30 @@ export default class List extends Component<iProps, iState> {
       current: current,
       header: header,
       columns: columns,
-      widths: widths,
+      widths: currentWidths,
       datas: [],
       origenalDatas: [],
-      selectorChecked: '未审',
       infoTitle: [],
       infoValue: [],
       currentInfo: [],
       showCurrentInfo: false,
+      tabListCurrent: 0,
+      showReviewButton: false,
+      reviewDate: new Date(),
+      inputVal: '',
     }
     this.longPress = this.longPress.bind(this);
-    this.pickerOnChange = this.pickerOnChange.bind(this);
     this.pickerGoupOnChange = this.pickerGoupOnChange.bind(this);
+    this.tabListClick = this.tabListClick.bind(this);
+    this.searchClick = this.searchClick.bind(this);
+    this.getInputVal = this.getInputVal.bind(this);
+    this.updateData = this.updateData.bind(this);
   }
 
   componentWillMount() { }
 
   componentDidMount() {
-    Taro.showLoading({title: '加载中'});
-    Taro.request({
-      url: `${serverUrl}getReimbursementData`,
-      data: {
-        planType: 1,
-        name: 'my-post-data',
-      },
-      method: 'POST',
-      header: {
-        'content-type': 'application/json'
-      }
-    }).then((res:Taro.request.SuccessCallbackResult<any>) => {
-      this.setState({
-        origenalDatas: res.data.reis,
-        datas: res.data.reis,
-        infoTitle: res.data.title,
-        infoValue: res.data.value,
-      })
-    })
+    this.updateData(null, null);
     this.config.navigationBarTitleText = this.state.current;
   }
 
@@ -95,39 +99,40 @@ export default class List extends Component<iProps, iState> {
     Taro.hideLoading();
   }
 
-  pickerGoupOnChange = (e: BaseEventOrig<{value: string[]}>) => {
-    console.log(e.target);
-  }
-
-  pickerOnChange = (e: BaseEventOrig<PickerSelectorProps.onChangeEventDetail>) => {
-    this.setState({
-      selectorChecked: range[e.detail.value]
+  updateData = (value: number | null, reviewDate: Date | null) => {
+    Taro.showLoading({ title: '加载中……' });
+    Taro.request({
+      url: `${Util.serverUrl()}getReimbursementData`,
+      data: {
+        planType: 1,
+        name: 'my-post-data',
+        reviewDate: reviewDate == null ? this.state.reviewDate : reviewDate,
+        tabListCurrent: value == null ? this.state.tabListCurrent : value,
+      },
+      method: 'POST',
+      header: {
+        'content-type': 'application/json'
+      },
+      fail: () => {
+        Taro.showToast({ title: '失败' });
+      }
+    }).then((res: Taro.request.SuccessCallbackResult<any>) => {
+      this.setState({
+        origenalDatas: res.data.reis,
+        datas: res.data.reis,
+        infoTitle: res.data.title,
+        infoValue: res.data.value,
+      })
+    }).catch((ex) => {
+      Taro.showToast({ title: ex });
     })
   }
 
-  // timeOutEvent: any;
-
-  // onTouchStart = () => {
-  //   this.timeOutEvent = setTimeout(() => {
-  //     this.timeOutEvent = 0;
-  //     this.longPress();
-  //   }, 400);
-  // }
-
-  // onTouchMove = () => {
-  //   clearTimeout(this.timeOutEvent);
-  //   this.timeOutEvent = 0;
-  // }
-  // onTouchEnd = () => {
-  //   clearTimeout(this.timeOutEvent);
-  //   // if (this.timeOutEvent != 0) {
-  //   //   console.log('点击了');
-  //   // }
-  //   return false;
-  // }
+  pickerGoupOnChange = (e: BaseEventOrig<{ value: string[] }>) => {
+    console.log(e.target);
+  }
 
   onClickShowInfo = (e: ITouchEvent) => {
-    Taro.showLoading({title: '加载中……'});
     const id = e.target.id;
     let targetObj: object = new Object();
     this.state.origenalDatas.map((obj) => {
@@ -155,20 +160,51 @@ export default class List extends Component<iProps, iState> {
   longPress = () => {
     const header: string[] = this.state.header;
     const columns: string[] = this.state.columns;
-    let widths: string[] = this.state.widths;
+    let currentWidths: string[] = this.state.widths;
     if (header.length == 5) {
       header.push('选择');
       columns.push('check');
-      widths = ['12%', '25%', '14%', '19%', '20%', '10%'];
+      currentWidths = ['7%', '25%', '14%', '19%', '20%', '10%'];
     } else {
       header.pop();
       columns.pop();
-      widths = ['13%', '32%', '15%', '20%', '20%'];
+      // widths = ['10%', '32%', '17%', '20%', '21%'];
+      currentWidths = widths;
     }
     this.setState({
       header: header,
       columns: columns,
-      widths: widths,
+      widths: currentWidths,
+      showReviewButton: header.length == 6 ? true : false,
+    })
+  }
+
+  tabListClick = (value) => { 
+    this.setState({ 
+      tabListCurrent: value 
+    }); 
+    this.updateData(value, null);
+  }
+
+  getInputVal(e){
+    e.preventDefault();
+    this.setState({
+      inputVal: e.detail.value,
+    });
+  }
+
+  searchClick = () => {
+    const searchContent = this.state.inputVal;
+    let data : object[] = new Array<Object>();
+    this.state.origenalDatas.map(element => {
+      if (element['supplierInfo'].indexOf(searchContent) != -1) {
+        data.push(element);
+      } else if (element['author'].indexOf(searchContent) != -1) {
+        data.push(element);
+      }
+    });
+    this.setState({
+      datas: data,
     })
   }
   /**
@@ -179,7 +215,7 @@ export default class List extends Component<iProps, iState> {
    * 提示和声明 navigationBarTextStyle: 'black' | 'white' 类型冲突, 需要显示声明类型
    */
   config: Config = {
-    navigationBarTitleText: '人员'
+    navigationBarTitleText: '申购审批'
   }
 
   render() {
@@ -192,7 +228,6 @@ export default class List extends Component<iProps, iState> {
     const tableForm = this.state.datas ? this.state.datas.map((obj, index) => {
       return (
         <View onLongPress={this.longPress} key={Math.random()} className='section'>
-          {/* <View onTouchStart={this.onTouchStart} onTouchMove={this.onTouchMove} onTouchEnd={this.onTouchEnd} key={Math.random()} className='section'> */}
           {
             columns.map((col, i) => {
               return col == 'check' ?
@@ -203,7 +238,7 @@ export default class List extends Component<iProps, iState> {
                   <View key={Math.random()} className='column' style={{ width: `${widths[i]}` }}>
                     {index + 1}
                   </View>
-                  : <View id={obj['id']} onClick={col == 'supplierInfo' ? (e) => this.onClickShowInfo(e) : () => {}} key={Math.random()} className='column' style={{ width: `${widths[i]}` }}>
+                  : <View id={obj['id']} onClick={col == 'supplierInfoShort' ? (e) => this.onClickShowInfo(e) : () => { }} key={Math.random()} className='column' style={{ width: `${widths[i]}` }}>
                     {obj[col]}
                   </View>
             })
@@ -214,6 +249,7 @@ export default class List extends Component<iProps, iState> {
     const detailInfo = this.state.currentInfo.map(info => {
       return <View key={Math.random()}>{info}</View>
     })
+    const tabList = [{ title: '未审' }, { title: '已审' }]
     return (
       <CheckboxGroup onChange={e => this.pickerGoupOnChange(e)}>
         <View className='index'>
@@ -222,14 +258,30 @@ export default class List extends Component<iProps, iState> {
               {tableHead}
             </View>
             {tableForm}
-            <View className="btn-area">
-              <Picker className='picker' mode='selector' range={range} value={0} onChange={e => this.pickerOnChange(e)}>{this.state.selectorChecked}</Picker>
-              <Button formType="submit">审批</Button>
-              <Button formType="reset">拒批</Button>
+            <View className="content-area">
+              <Input onInput={e => this.getInputVal(e)} type="text" style={'border-bottom: solid 1px #aaaaaa; width: 70%;line-height: 2em; font-size: 0.8em; margin-top: 2%'} className="left inline" placeholder="输入搜索内容"/>
+              <Button className="right inline" style={'margin-right: 2px;'} onClick={this.searchClick}>搜索</Button>
+              <AtTabs current={this.state.tabListCurrent} tabList={tabList} onClick={this.tabListClick}>
+                <AtTabsPane current={this.state.tabListCurrent} index={0}>
+                  <View className={(this.state.showReviewButton ? 'show' : 'hide') + " button-area"}>
+                    <Button className="allSelection left">全选</Button>
+                    <Button className="invertSelection left">反选</Button>
+                    <Button className="right" formType="submit">审批</Button>
+                    <Button className="right" formType="reset">拒批</Button>
+                  </View>
+                </AtTabsPane>
+                <AtTabsPane current={this.state.tabListCurrent} index={1}>
+                  <View className="button-area">
+                    <Button className={"inline left"} onClick={() => {this.setState({ reviewDate: Util.addMonth(this.state.reviewDate, -1) }); this.updateData(null, Util.addMonth(this.state.reviewDate, -1))}}>上月</Button>
+                    <View className="inline review_date" style={'font-size: 0.8em; line-height: 2em;'}>{Util.dateFormat(this.state.reviewDate, 'yyyy年MM月')}</View>
+                    <Button className="inline right" onClick={() => {this.setState({reviewDate: Util.addMonth(this.state.reviewDate, 1)}); this.updateData(null, Util.addMonth(this.state.reviewDate, 1))}}>下月</Button>
+                  </View>
+                </AtTabsPane>
+              </AtTabs>
             </View>
           </Form>
         </View>
-        <View onClick={() => {this.setState({showCurrentInfo: false})}} className={(this.state.showCurrentInfo ? 'show' : 'hide') + ' info-board'}>
+        <View onClick={() => { this.setState({ showCurrentInfo: false }) }} className={(this.state.showCurrentInfo ? 'show' : 'hide') + ' info-board'}>
           {detailInfo}
         </View>
       </CheckboxGroup>

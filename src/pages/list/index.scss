@@ -1,3 +1,5 @@
+@import "~taro-ui/dist/style/components/tabs.scss";
+
 form {
     text-align: center;
     margin-top: 70px;
@@ -15,10 +17,14 @@ form {
     text-align: center;
     border-bottom: 1px solid #aaaaaa;
     margin: 0 auto;
-    line-height: 1.4rem;
+    line-height: 1.6rem;
 }
 
-.btn-area {
+.section_gap {
+    margin-top: 160px;
+}
+
+.content-area {
     width: 95%;
     position: fixed;
     left: 2.5%;
@@ -32,20 +38,19 @@ button {
     line-height: 1.8rem;
     width: 20%;
     margin-left: 10px;
-    float: right !important;
 }
 
-picker {
-    font-size: 0.8rem;
-    height: 1.5rem;
-    line-height: 1.5rem;
-    width: 20%;
-    float: left !important;
-    border: 1px solid #dddddd;
-}
+// picker {
+//     font-size: 0.8rem;
+//     height: 1.5rem;
+//     line-height: 1.5rem;
+//     width: 20%;
+//     float: left !important;
+//     border: 1px solid #dddddd;
+// }
 
 .check-box {
-    zoom:60%;
+    zoom: 60%;
 }
 
 .info-board {
@@ -53,8 +58,17 @@ picker {
     width: 100%;
     bottom: 0;
     height: 70%;
-    background: rgba(240, 240, 240 , 0.8);
+    background: rgba(240, 240, 240, 0.8);
+    text-align: left;
     overflow-y: scroll;
+    padding-left: 1%;
+    padding-right: 1%;
+}
+
+.button-area {
+    width: 95%;
+    height: auto;
+    margin-top: 3%;
 }
 
 .show {
@@ -63,4 +77,33 @@ picker {
 
 .hide {
     display: none;
+}
+
+.scroll {
+    overflow-y: scroll;
+}
+
+.search_box {
+    width: 95%;
+    position: fixed;
+}
+
+.search_text {
+    width: 70%;
+}
+
+.search_btn {
+    width: 20%;
+}
+
+.left {
+    float: left;
+}
+
+.right {
+    float: right;
+}
+
+.inline {
+    display: inline !important;
 }

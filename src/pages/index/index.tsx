@@ -1,6 +1,7 @@
-import Taro, { Component, Config } from '@tarojs/taro'
+import Taro, { Component, Config, General } from '@tarojs/taro'
 import { View, Text, Button, Image, Input } from '@tarojs/components'
 import './index.scss'
+import { Util } from '../util/util';
 
 export default class Index extends Component {
 
@@ -19,15 +20,15 @@ export default class Index extends Component {
     e.stopPropagation();
     Taro.login({
       success: function (res) {
-        console.log(res);
         if (res.code) {
-          //发起网络请求
-          // Taro.request({
-          //   url: 'https://test.com/onLogin',
-          //   data: {
-          //     code: res.code,
-          //   }
-          // })
+          // 发起网络请求
+          Taro.request({
+            method: 'POST',
+            url: Util.serverUrl() + 'onLogin',
+            data: {
+              code: res.code,
+            }
+          }).then((res: Taro.request.SuccessCallbackResult<any>) => console.log(res.data));
           // console.log(res.code);
           //用户登录凭证（有效期五分钟）。开发者需要在开发者服务器后台调用 api，使用 code 换取 openid 和 session_key 等信息
           Taro.showToast({ title: '登录成功' });
@@ -37,7 +38,12 @@ export default class Index extends Component {
         } else {
           console.log("登录失败！" + res.errMsg);
         }
+      },
+      fail: function (res: General.CallbackResult){
+        console.log(res.errMsg);
       }
+    }).catch((err) => {
+      console.log(err.message);
     });
     // Taro.switchTab({
     //   url: '/pages/work/index',
